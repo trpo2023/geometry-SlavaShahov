@@ -1,7 +1,11 @@
-*.o
+geometry
 
-.main.c.swp
+geometry.co
 
-main.c~
+.[oa]
 
-#main.c#
+*~
+
+*swp
+
+bin/

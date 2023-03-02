@@ -1,90 +1,142 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-int main(){
-    int SpaceCount=0;
-    int Zcount;
-    int Pcount;
-    char Str[100]="circle(0 0, 1.5)";
-    char BeginStr[8]="circle(";
-    char OurStr[256];
-    //printf("%s",Str+7);
-    if(strncmp(Str,BeginStr,7)!=0){
-        printf("Error column 1 expected: 'circle('");puts("\n");
-        printf("%s\n", Str);
-        for(int i=0; i<strlen(BeginStr); i++){
-            if(Str[i]==BeginStr[i]){
-                printf(" ");
-            }else {printf("^"); break;}
+int main()
+{
+    FILE* file;
+    file = fopen("geom.txt", "r");
+
+    int i, ind_open_bracket = 0, ind_close_bracket = 0, ind_last_num_elm = 0,
+           ind_first_num_elm = 0, ind_second_num_elm = 0;
+    int l = 0, c = 0, e = 0, error = 0;
+
+    while (1) {
+        e = fgetc(file);
+        if (e == EOF) {
+            if (feof(file) != 0) {
+                break;
+            }
         }
-        return 0;
-    }else{
-       strncpy(OurStr,Str+7,strlen(Str)-7);
-       int flagS=0;
-       for(int i=0;i<strlen(OurStr);i++){
-           if((OurStr[i]==')')&&(i!=strlen(OurStr)-1)){
-               printf("Error column %d too many brackets or the characters are outside the parenthesis",i+8);puts("\n");
-               printf("%s\n", Str);
-               return 0;
-           }
-           if((OurStr[i]==' ')&&(flagS!=2)){
-               flagS=1;
-               
-           }
-           if(OurStr[i]==','){
-               if(flagS!=1){
-                   printf("Error column %d expected: 'circle(int int, float)' ",i+8);
-                   
-               }
-                if(flagS==1){
-                    flagS++;
-                    if(OurStr[i+1]!=' '){
-                        printf("Error column %d 'circle(int int, float)'",i+8);
-                        return 0;
-                        
-                    }
-                    
+        c++;
+    }
+    l = c;
+    fclose(file);
+
+    char a[l], b[6] = "circle";
+    file = fopen("geom.txt", "r");
+    while (fgets(a, l + 1, file)) {
+        printf("%s", a);
+
+        for (i = 0; i < 7; i++) {
+            if (a[i] != b[i] && i < 6) {
+                printf("Error at column %d: expected 'circle'\n", i);
+                error = 1;
+                break;
+                ;
+            }
+            ind_open_bracket = i;
+        }
+
+        for (i = 0; i < l; i++) {
+            if (a[i] == ')') {
+                ind_close_bracket = i;
+            } else {
+                ind_close_bracket = l - 1;
+            }
+        }
+
+        for (i = ind_open_bracket + 1; a[i] != ' '; i++) {
+            if (error == 0) {
+                if (a[i] == ',') {
+                    error = 1;
+                    printf("Error at column %d: expected '<space>' and "
+                           "'<double>'\n",
+                           i);
+                    break;
                 }
-               
-           }
-           if(OurStr[i]=='.'){
-               if(flagS!=2){
-                   printf("Error column %d 'circle(int int, float)'",i+8);
-                   return 0;
-                   
-               }else{
-                   flagS=3;
-               }
-               
-           }
-           
-       }
-   }   
-   //int BracketsRevCount=0;
-   for(int i=0;i<strlen(OurStr);i++){
-       if(OurStr[i]==' '){
-           SpaceCount++;
-           if(SpaceCount>2)printf("Error column %d too many spaces",i+8);
-           return 0;
-           
-       }
-       if ((OurStr[i] >= 'a') && (OurStr[i] <='z')) {
-           printf(" Error column %d expected: 'circle(int int, float)' ",i+8);
-           return 0;
-       }
-       if(OurStr[i]==','){
-           Zcount++;
-           if(Zcount>1)printf("Error column %d too many commas",i+8);
-           return 0;
-       }
-       if(OurStr[i]=='.'){
-           Pcount++;
-           if(Pcount>1)printf("Error column %d too many points",i+8);
-           return 0;
-       }
-       if(OurStr[i]=='('){
-           printf("Error column %d too many brackets",i+8);
-           return 0;
-       }
-	}
+                if (isdigit(a[i]) == 0 && a[i] != '.') {
+                    error = 1;
+                    printf("Error at column %d: expected '<double>'\n", i);
+                    break;
+                }
+                ind_first_num_elm = i;
+            } else {
+                break;
+            }
+        }
+
+        for (i = ind_first_num_elm + 2; a[i] != ','; i++) {
+            if (error == 0) {
+                if (a[i] == ')') {
+                    error = 1;
+                    printf("Error at column %d: expected ',' and '<double>'\n",
+                           i);
+                    break;
+                }
+                if (isdigit(a[i]) == 0 && a[i] != '.') {
+                    error = 1;
+                    printf("Error at column %d: expected '<double>'\n", i);
+                    break;
+                }
+                ind_second_num_elm = i;
+            } else {
+                break;
+            }
+        }
+
+        for (i = ind_second_num_elm + 3; i < ind_close_bracket; i++) {
+            if (error == 0) {
+                if ((isdigit(a[i]) == 0 && a[i] != '.') || a[i]=='0') {
+                    if (a[i] == ')' || a[i] == '(' || a[i] == ' ') {
+                        break;
+                    }
+                    error = 1;
+                    printf("Error at column %d: expected '<double>'\n", i);
+                    break;
+                }
+                ind_last_num_elm = i;
+            } else {
+                break;
+            }
+        }
+
+        for (i = ind_last_num_elm + 1; i < l; i++) {
+            if (error == 0) {
+                if (a[i] != ')') {
+                    error = 1;
+                    printf("Error at column %d: expected ')'\n", i);
+                    break;
+                } else {
+                    ind_close_bracket = i;
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
+        for (i = ind_close_bracket + 1; i < l; i++) {
+            if (error == 0) {
+                if (a[i] == '\n') {
+                    break;
+                }
+
+                if (a[i] != ' ') {
+                    error = 1;
+                    printf("Error at column %d: unexpected token\n", i);
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
+        if (error == 0) {
+            printf("No Errors\n");
+        }
+
+        error = 0;
+    }
+    return 0;
 }
