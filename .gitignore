@@ -1,11 +1,5 @@
-geometry
-
-geometry.co
-
-.[oa]
-
-*~
-
+main
+*.[oa]
 *swp
-
-bin/
+.vscode/
+*.~
